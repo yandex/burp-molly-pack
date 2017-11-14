@@ -1,0 +1,59 @@
+{
+  "burp-molly-pack": {
+    "activePluginsEnable": [
+      "CRLFPlugin",
+      "HttPoxyPlugin",
+      "YaExpressExceptionPlugin",
+      "YaExpressRedirectPlugin",
+      "JsonpPlugin",
+      "XXEPlugin",
+      "YaSSRFPlugin",
+      "WebsocketOriginPlugin",
+      "RubySessionDefaultSecretDetectorPlugin",
+      "YaXFFPlugin",
+      "XmlRpcSerializablePlugin",
+      "YaRedirectPlugin"
+    ],
+    "passivePluginsEnable": [
+      "ClickJackingPlugin",
+      "ContentSniffingPlugin",
+      "XXssProtectionPlugin"
+    ],
+    "ClickJackingPlugin": {
+      "ignoreCodes": [
+        101,
+        404,
+        301,
+        302,
+        500,
+        503,
+        502,
+        403,
+        405,
+        400,
+        304,
+        504,
+        414
+      ]
+    },
+    "ContentSniffingPlugin": {
+      "ignoreCodes": [
+        404,
+        403,
+        301,
+        302,
+        405,
+        400,
+        304,
+        401,
+        502,
+        504,
+        503,
+        414,
+        500
+      ]
+    }
+  },
+  "burp-active-scanner": {
+  }
+}
