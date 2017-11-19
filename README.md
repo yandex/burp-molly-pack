@@ -7,16 +7,12 @@ Plugins contains Active and Passive security checks.
 
 # Usage
 
-* Build fat jar with Maven
-
-`maven build`
+* Build fat jar with Maven `mvn package` or download release version
 * Change and save [burp_molly_config.json](https://github.com/yandex/burp-molly-pack/blob/master/src/main/config/burp_molly_config.json)
 * Put path to config in MOLLY_CONFIG Environment variable
 
 `export MOLLY_CONFIG=/path/to/burp_molly_config.json`
-* Run Burp Suite in console
-
-`java -jar burpsuite_pro.jar`
+* Run Burp Suite in console `java -jar burpsuite_pro.jar`
 * Add Plugins Jar file in Extender Tab
 
 # Contributing
