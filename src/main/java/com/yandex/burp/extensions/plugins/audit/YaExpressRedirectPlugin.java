@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by a-abakumov on 07/02/2017.
@@ -27,12 +29,14 @@ public class YaExpressRedirectPlugin implements IAuditPlugin {
     private final String SEVERITY = "Medium";
     private final String CONFIDENCE = "Certain";
 
-    private final List<String> REDIRECTS = Arrays.asList("//EXAMPLE.COM", "/\\EXAMPLE.COM", "\\/EXAMPLE.COM",
-            "HTTPS://EXAMPLE.COM", "HTTP://EXAMPLE.COM",
-            // Internet Explorer
-            "/\t/EXAMPLE.COM", "\\\t\\EXAMPLE.COM",
-            // Chrome
-            "///EXAMPLE.COM", "\\/\\EXAMPLE.COM", "/\\/EXAMPLE.COM");
+    /*    private final List<String> REDIRECTS = Arrays.asList("//EXAMPLE.COM", "/\\EXAMPLE.COM", "\\/EXAMPLE.COM",
+                "HTTPS://EXAMPLE.COM", "HTTP://EXAMPLE.COM",
+                // Internet Explorer
+                "/\t/EXAMPLE.COM", "\\\t\\EXAMPLE.COM",
+                // Chrome
+                "///EXAMPLE.COM", "\\/\\EXAMPLE.COM", "/\\/EXAMPLE.COM");
+    */
+    private static final Pattern REDIRECT_PATTERN = Pattern.compile("^(?:(?:HTTPS?:(?:\\/{2,}|(?:\\\\\\/){2,}))|(?:\\/\\/|\\/\\t\\/|\\/\\\\|\\\\\\t\\\\|\\/\\\\\\/|\\\\\\/\\\\|\\/\\/\\/{1,}))EXAMPLE\\.COM");
 
     public YaExpressRedirectPlugin(IBurpExtenderCallbacks callbacks, BurpMollyPackConfig extConfig) {
         this.callbacks = callbacks;
@@ -50,6 +54,7 @@ public class YaExpressRedirectPlugin implements IAuditPlugin {
         Payloads.add("/example.com/%2e%2e");
         Payloads.add("/%5cexample.com%3f/doc/");
         Payloads.add("/%2fexample.com");
+        Payloads.add("example.com");
     }
 
     public List<IScanIssue> doScan(IHttpRequestResponse baseRequestResponse, IScannerInsertionPoint insertionPoint) {
@@ -86,20 +91,19 @@ public class YaExpressRedirectPlugin implements IAuditPlugin {
 
         String locationHeader = Utils.getHeaderValue(headers, "Location");
         if (locationHeader == null) return null;
-        for (String redirect : REDIRECTS) {
-            if (locationHeader.toUpperCase().startsWith(redirect)) {
-                String attackDetails = "A Express framework open redirect vulnerability was found at: <b>" +
-                        helpers.analyzeRequest(requestResponse).getUrl().toString() + "</b>\n";
-                List responseMarkers = new ArrayList(1);
-                responseMarkers.add(new int[]{helpers.bytesToString(requestResponse.getResponse()).toUpperCase().indexOf("LOCATION"),
-                        helpers.bytesToString(requestResponse.getResponse()).toUpperCase().indexOf("LOCATION") + "LOCATION".length()});
+        Matcher redirectMatcher = REDIRECT_PATTERN.matcher(locationHeader.toUpperCase());
+        if (redirectMatcher.find()) {
+            String attackDetails = "A open redirect vulnerability was found at: <b>" +
+                    helpers.analyzeRequest(requestResponse).getUrl().toString() + "</b>\n";
+            List responseMarkers = new ArrayList(1);
+            responseMarkers.add(new int[]{helpers.bytesToString(requestResponse.getResponse()).toUpperCase().indexOf("LOCATION"),
+                    helpers.bytesToString(requestResponse.getResponse()).toUpperCase().indexOf("LOCATION") + "LOCATION".length()});
 
-                return new CustomScanIssue(requestResponse.getHttpService(),
-                        this.helpers.analyzeRequest(requestResponse).getUrl(),
-                        new IHttpRequestResponse[]{this.callbacks.applyMarkers(requestResponse, null, responseMarkers)},
-                        attackDetails, ISSUE_TYPE, ISSUE_NAME, SEVERITY, CONFIDENCE,
-                        "", "", "");
-            }
+            return new CustomScanIssue(requestResponse.getHttpService(),
+                    this.helpers.analyzeRequest(requestResponse).getUrl(),
+                    new IHttpRequestResponse[]{this.callbacks.applyMarkers(requestResponse, null, responseMarkers)},
+                    attackDetails, ISSUE_TYPE, ISSUE_NAME, SEVERITY, CONFIDENCE,
+                    "", "", "");
         }
         return null;
     }
