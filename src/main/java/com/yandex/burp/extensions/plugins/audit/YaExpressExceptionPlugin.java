@@ -3,6 +3,7 @@ package com.yandex.burp.extensions.plugins.audit;
 import burp.*;
 import com.yandex.burp.extensions.plugins.CustomScanIssue;
 import com.yandex.burp.extensions.plugins.config.BurpMollyPackConfig;
+import com.yandex.burp.extensions.plugins.Utils;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -97,6 +98,10 @@ public class YaExpressExceptionPlugin implements IAuditPlugin {
 
     public IScanIssue analyzeResponse(IHttpRequestResponse requestResponse) {
         if (requestResponse.getResponse() == null) return null;
+
+        IResponseInfo resp = helpers.analyzeResponse(requestResponse.getResponse());
+        String contentTypeHeader = Utils.getContentType(resp);
+        if (contentTypeHeader.toUpperCase().contains("JAVASCRIPT")) return null;
 
         for (String i : Signatures) {
             if (helpers.bytesToString(requestResponse.getResponse()).contains(i)) {
